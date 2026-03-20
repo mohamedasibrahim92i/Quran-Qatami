@@ -139,7 +139,8 @@ function nextSurah(index) {
 
 // ─── HTTP Server ──────────────────────────────────────────────────
 const server = http.createServer((req, res) => {
-  const url = req.url.split('?')[0];
+  console.log(`→ ${req.method} "${req.url}"`);  // visible in Render logs
+  const url = req.url.split('?')[0].replace(/\/+$/, '') || '/';
 
   // CORS for frontend on any domain
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -148,7 +149,7 @@ const server = http.createServer((req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
   // ── /stream — live audio ──
-  if (url === '/stream') {
+  if (url === '/stream' || url === '/stream/') {
     res.writeHead(200, {
       'Content-Type': 'audio/mpeg',
       'Transfer-Encoding': 'chunked',
@@ -178,7 +179,7 @@ const server = http.createServer((req, res) => {
   }
 
   // ── /status — current surah JSON ──
-  if (url === '/status') {
+  if (url === '/status' || url === '/status/') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       on_air: true,
@@ -198,7 +199,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  res.writeHead(404); res.end('Not found');
+  res.writeHead(404); res.end(`Not found: "${url}" — try /stream or /status`);
 });
 
 server.listen(PORT, () => {
